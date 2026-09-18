@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VideoAI — Generator Video AI Gratis 100%</title>
+<meta name="description" content="Buat video AI lengkap dengan gambar, narasi suara, musik, dan subtitle. Gratis 100%, tanpa API key, tanpa login.">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">🎬</span>
+    <div>
+      <h1>VideoAI</h1>
+      <p class="tagline">Generator video AI — <strong>gratis 100%</strong>, tanpa API key, tanpa login</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <span id="health" class="pill pill-dim" title="Status layanan">memeriksa…</span>
+    <button type="button" id="btn-history" class="btn btn-ghost">Riwayat</button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ============================ KIRI: FORM ============================ -->
+  <section class="panel" aria-label="Form pembuatan video">
+    <form id="form" autocomplete="off">
+
+      <div class="field">
+        <label for="topic">Topik atau ide video <span class="req">*</span></label>
+        <textarea id="topic" name="topic" rows="3" maxlength="600" required
+          placeholder="Contoh: Menjelaskan keindahan terumbu karang Indonesia dan pentingnya menjaga laut kita"></textarea>
+        <div class="row-between">
+          <small class="hint">Tulis sedetail mungkin — AI akan menulis skripnya untuk Anda.</small>
+          <small><span id="topic-count">0</span>/600</small>
+        </div>
+        <div class="chips" id="idea-chips">
+          <button type="button" class="chip" data-idea="Keindahan terumbu karang Indonesia dan cara menjaganya">🐠 Terumbu karang</button>
+          <button type="button" class="chip" data-idea="Tips produktif bekerja dari rumah untuk pemula">💻 Produktif WFH</button>
+          <button type="button" class="chip" data-idea="Sejarah singkat Candi Borobudur dan maknanya">🏯 Borobudur</button>
+          <button type="button" class="chip" data-idea="Cara memulai hidup sehat dengan olahraga ringan setiap hari">🏃 Hidup sehat</button>
+          <button type="button" class="chip" data-idea="Penjelasan sederhana tentang kecerdasan buatan untuk pemula">🤖 AI untuk pemula</button>
+          <button type="button" class="chip" data-idea="Resep nasi goreng spesial yang mudah dan enak">🍳 Nasi goreng</button>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="language">Bahasa narasi</label>
+          <select id="language" name="language">
+            {% for lang in options.languages %}
+            <option value="{{ lang.id }}" {% if lang.id == 'id' %}selected{% endif %}>{{ lang.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="voice_gender">Jenis suara</label>
+          <div class="inline">
+            <select id="voice_gender" name="voice_gender">
+              <option value="male" selected>Pria</option>
+              <option value="female">Wanita</option>
+            </select>
+            <button type="button" id="btn-voice-preview" class="btn btn-ghost" title="Dengarkan contoh suara">▶︎</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="aspect">Format video</label>
+          <select id="aspect" name="aspect">
+            {% for a in options.aspects %}
+            <option value="{{ a.id }}" {% if a.id == '16:9' %}selected{% endif %}>{{ a.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="quality">Kualitas render</label>
+          <select id="quality" name="quality">
+            {% for q in options.qualities %}
+            <option value="{{ q.id }}" {% if q.id == 'high' %}selected{% endif %}>{{ q.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="scene_count">Jumlah scene: <output id="scenes-out">6</output></label>
+        <input type="range" id="scene_count" name="scene_count" min="{{ options.scene_range[0] }}"
+               max="{{ options.scene_range[1] }}" value="6" step="1">
+        <div class="row-between"><small class="hint">Lebih banyak scene = video lebih panjang.</small>
+        <small id="est-duration" class="hint">≈ 0 detik</small></div>
+      </div>
+
+      <details class="advanced">
+        <summary>Pengaturan lanjutan</summary>
+
+        <div class="field">
+          <label for="visual_style">Gaya visual</label>
+          <select id="visual_style" name="visual_style">
+            {% for s in options.styles %}
+            <option value="{{ s }}" {% if loop.first %}selected{% endif %}>{{ s.split(',')[0] | title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="image_model">Model gambar AI</label>
+            <select id="image_model" name="image_model">
+              {% for m in options.image_models %}
+              <option value="{{ m.id }}">{{ m.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="music_mood">Suasana musik</label>
+            <select id="music_mood" name="music_mood">
+              {% for m in options.moods %}<option value="{{ m.id }}">{{ m.label }}</option>{% endfor %}
+            </select>
+            <small class="hint">Musik dibuat secara prosedural — bebas royalti.</small>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="tone">Nada penyampaian</label>
+          <input type="text" id="tone" name="tone" value="informatif dan menarik" maxlength="120">
+        </div>
+
+        <div class="field">
+          <label for="extra_direction">Arahan tambahan (opsional)</label>
+          <textarea id="extra_direction" name="extra_direction" rows="2" maxlength="400"
+            placeholder="Contoh: gunakan sudut pandang orang pertama, sertakan angka statistik"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="seed">Seed (0 = acak)</label>
+          <input type="number" id="seed" name="seed" value="0" min="0" step="1">
+          <small class="hint">Seed sama + topik sama = gambar yang sama (dapat direproduksi).</small>
+        </div>
+
+        <fieldset class="switches">
+          <legend>Komponen video</legend>
+          <label class="switch"><input type="checkbox" id="enable_motion" checked><span>Gerakan kamera (Ken Burns)</span></label>
+          <label class="switch"><input type="checkbox" id="enable_narration" checked><span>Narasi suara AI</span></label>
+          <label class="switch"><input type="checkbox" id="enable_subtitles" checked><span>Subtitle otomatis</span></label>
+          <label class="switch"><input type="checkbox" id="enable_music" checked><span>Musik latar</span></label>
+        </fieldset>
+      </details>
+
+      <div class="actions">
+        <button type="button" id="btn-script" class="btn btn-secondary">📝 Lihat skrip dulu</button>
+        <button type="submit" id="btn-generate" class="btn btn-primary">✨ Buat Video</button>
+      </div>
+    </form>
+
+    <p class="notice">
+      🆓 <strong>Gratis 100%.</strong> Gambar &amp; skrip dibuat oleh layanan AI terbuka
+      (Pollinations), suara oleh Microsoft Edge TTS, musik disintesis lokal, dan video
+      dirender oleh FFmpeg di komputer ini. Tidak ada API key, tidak ada langganan.
+    </p>
+  </section>
+
+  <!-- ============================ KANAN: HASIL ============================ -->
+  <section class="panel" aria-label="Hasil">
+    <div id="stage" class="stage">
+
+      <!-- kosong -->
+      <div id="view-empty" class="view">
+        <div class="empty-art">🎥</div>
+        <h2>Video Anda akan muncul di sini</h2>
+        <p class="muted">Isi topik di sebelah kiri, lalu tekan <strong>Buat Video</strong>.</p>
+        <ol class="steps">
+          <li>AI menulis skrip &amp; storyboard</li>
+          <li>AI membuat gambar tiap scene</li>
+          <li>Suara narasi + musik disusun</li>
+          <li>FFmpeg merender video final</li>
+        </ol>
+      </div>
+
+      <!-- progres -->
+      <div id="view-progress" class="view hidden">
+        <h2 id="progress-title">Sedang mengerjakan…</h2>
+        <div class="bar"><div id="bar-fill" class="bar-fill"></div></div>
+        <p id="progress-msg" class="muted">Menyiapkan…</p>
+        <p class="muted small" id="progress-time"></p>
+        <ul id="progress-log" class="log"></ul>
+      </div>
+
+      <!-- skrip -->
+      <div id="view-script" class="view hidden">
+        <h2>📝 Pratinjau skrip</h2>
+        <p id="script-warning" class="warn hidden"></p>
+        <div class="field">
+          <label for="script-title">Judul</label>
+          <input type="text" id="script-title" maxlength="120">
+        </div>
+        <div class="field">
+          <label for="script-desc">Deskripsi</label>
+          <textarea id="script-desc" rows="2" maxlength="400"></textarea>
+        </div>
+        <div id="script-scenes" class="script-scenes"></div>
+        <div class="actions">
+          <button type="button" id="btn-script-cancel" class="btn btn-ghost">Tutup</button>
+          <button type="button" id="btn-script-use" class="btn btn-primary">Gunakan skrip ini &amp; buat video</button>
+        </div>
+      </div>
+
+      <!-- sukses -->
+      <div id="view-result" class="view hidden">
+        <video id="video" controls playsinline preload="metadata"></video>
+        <h2 id="result-title">Selesai</h2>
+        <p id="result-desc" class="muted"></p>
+        <dl class="stats">
+          <div><dt>Durasi</dt><dd id="stat-duration">—</dd></div>
+          <div><dt>Ukuran</dt><dd id="stat-size">—</dd></div>
+          <div><dt>Scene</dt><dd id="stat-scenes">—</dd></div>
+          <div><dt>Waktu render</dt><dd id="stat-elapsed">—</dd></div>
+        </dl>
+        <div class="actions">
+          <a id="btn-download" class="btn btn-primary" download>⬇︎ Unduh MP4</a>
+          <button type="button" id="btn-again" class="btn btn-secondary">Buat video lain</button>
+        </div>
+        <details id="result-scenes"></details>
+      </div>
+
+      <!-- error -->
+      <div id="view-error" class="view hidden">
+        <div class="empty-art">⚠️</div>
+        <h2>Terjadi kesalahan</h2>
+        <p id="error-msg" class="warn"></p>
+        <div class="actions">
+          <button type="button" id="btn-retry" class="btn btn-secondary">Coba lagi</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="history" class="history hidden">
+      <h2>Riwayat video</h2>
+      <div id="history-list" class="history-list"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>VideoAI v{{ version }}</span>
+  <span class="dot">•</span>
+  <span>Dibuat dengan Pollinations · edge-tts · FFmpeg</span>
+  <span class="dot">•</span>
+  <span>Tekan <kbd>Ctrl</kbd>+<kbd>Enter</kbd> di kotak topik untuk mulai</span>
+</footer>
+
+<audio id="audio-preview" class="hidden"></audio>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

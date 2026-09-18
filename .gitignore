@@ -1,0 +1,17 @@
+# Cache & artefak hasil render
+assets/cache/
+assets/music/
+output/
+work/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
