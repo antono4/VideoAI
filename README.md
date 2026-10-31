@@ -1,1 +1,31 @@
-Last updated: 2026-11-01 00:22:50 WIB
+# VideoAI
+
+
+
+## 📋 Overview
+
+This repository contains **18 files** and is built with the following technologies:
+
+Python
+
+## 🚀 Quick Start
+
+```bash
+pip install -r requirements.txt
+python main.py
+```
+
+## ✨ Features
+
+- 📝 Auto-generated documentation
+
+## 🛠️ Technologies
+
+Python
+
+## 📄 License
+
+MIT License
+
+---
+*Last updated: 2026-11-01 01:44:52 WIB*
